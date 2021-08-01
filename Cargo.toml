@@ -27,7 +27,7 @@ serde_repr = "0.1.7"
 tokio = { version = "1.9.0", features = ["fs", "macros", "parking_lot", "process", "rt", "signal"] }
 toml = "0.5.8"
 tower = { version = "0.4.8", features = ["timeout"] }
-tower-http = { version = "0.1.1", features = ["compression", "decompression", "trace"] }
+tower-http = { version = "0.1.1", features = ["compression-gzip", "decompression-gzip", "trace"] }
 tracing = "0.1.26"
 tracing-subscriber = "0.2.19"
 
