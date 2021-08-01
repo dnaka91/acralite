@@ -1,0 +1,49 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+
+    <div class="columns">
+      <div class="column">
+        <div class="box">
+          <nav class="breadcrumb">
+            <ul>
+              <li><a href="/apps">Apps</a></li>
+              <li class="is-active"><a href="#">{{ app.name }}</a></li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+
+    <div class="columns">
+      <div class="column">
+        <div class="box">
+          <table class="table is-hoverable is-fullwidth">
+            <thead>
+              <tr>
+                <th>ID</th>
+                <th>Name</th>
+              </tr>
+            </thead>
+            <tbody>
+              {% for version in versions %}
+              <tr>
+                <th>{{ version.id }}</th>
+                <td>
+                  <a href="#">
+                    <strong>{{ version.name }}</strong>
+                  </a>
+                </td>
+              </tr>
+              {% endfor %}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+{% endblock content %}

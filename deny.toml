@@ -1,0 +1,13 @@
+[licenses]
+allow-osi-fsf-free = "either"
+exceptions = [
+    { allow = ["AGPL-3.0"], name = "acralite", version = "*" },
+]
+
+[bans]
+skip = [
+    { name = "cfg-if", version = "=0.1.10" },
+]
+skip-tree = [
+    { name = "pin-project", version = "=0.4.27" },
+]

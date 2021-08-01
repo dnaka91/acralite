@@ -1,0 +1,59 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+
+    <div class="columns">
+      <div class="column">
+        <div class="box">
+          <nav class="breadcrumb">
+            <ul>
+              <li><a href="/apps">Apps</a></li>
+              <li><a href="/apps/create">Create</a></li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+
+    <div class="columns">
+      <div class="column">
+        <div class="box">
+          {% match result %}
+            {% when Ok with (app) %}
+              <div class="message is-success">
+                <div class="message-body">
+                  App {{ app.name }} successfully created.
+                </div>
+              </div>
+              <div class="field">
+                <label class="label">Username</label>
+                <div class="control">
+                  <input class="input" type="text" value="{{ app.username }}" readonly>
+                </div>
+              </div>
+              <div class="field">
+                <label class="label">Password</label>
+                <div class="control">
+                  <input class="input" type="text" value="{{ app.password }}" readonly>
+                </div>
+              </div>
+            {% when Err with (e) %}
+              <div class="message is-danger">
+                <div class="message-body">
+                  Failed creating new app:
+                  <p>{{ e }}</p>
+                </div>
+              </div>
+              <div>
+                <a class="button is-link is-light" href="/apps">Return</a>
+              </div>
+          {% endmatch %}
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+{% endblock content %}
