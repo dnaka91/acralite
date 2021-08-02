@@ -116,7 +116,7 @@ pub async fn report_save(
 #[cfg(debug_assertions)]
 const REPORTS_DIR: &str = "reports";
 #[cfg(not(debug_assertions))]
-const REPORTS_DIR: &str = concat!("/var/lib/", env!("CARGO_CRATE_NAME"), "/reports");
+const REPORTS_DIR: &str = concat!("/var/lib/", env!("CARGO_PKG_NAME"), "/reports");
 
 async fn save_raw(raw: &Value) -> Result<()> {
     let report_id = raw

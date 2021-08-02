@@ -5,7 +5,7 @@ use tokio::fs;
 #[cfg(debug_assertions)]
 const MAPPING: &str = "mapping.txt";
 #[cfg(not(debug_assertions))]
-const MAPPING: &str = concat!("/var/lib/", env!("CARGO_CRATE_NAME"), "/mapping.txt");
+const MAPPING: &str = concat!("/var/lib/", env!("CARGO_PKG_NAME"), "/mapping.txt");
 
 pub async fn retrace(stacktrace: &str) -> Result<String> {
     let mapping = fs::read_to_string(MAPPING).await?;
