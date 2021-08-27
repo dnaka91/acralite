@@ -1,0 +1,53 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="section">
+  <div class="container">
+
+    <div class="columns">
+      <div class="column">
+        <div class="box">
+          <nav class="breadcrumb">
+            <ul>
+              <li><a href="/users">Users</a></li>
+              <li class="is-active"><a href="#">Create</a></li>
+            </ul>
+          </nav>
+        </div>
+      </div>
+    </div>
+
+    <div class="columns">
+      <div class="column">
+        <div class="box">
+          <form action="/users/create" method="POST">
+            <div class="field">
+              <label class="label">Username</label>
+              <div class="control">
+                <input class="input" name="username" type="text" placeholder="Username">
+              </div>
+            </div>
+
+            <div class="field">
+              <label class="label">Password</label>
+              <div class="control">
+                <input class="input" name="password" type="password" placeholder="Password">
+              </div>
+            </div>
+
+            <div class="field is-grouped">
+              <div class="control">
+                <button class="button is-link">Submit</button>
+              </div>
+              <div class="control">
+                <a class="button is-link is-light" href="/users">Cancel</a>
+              </div>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+  </div>
+</section>
+{% endblock content %}

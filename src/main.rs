@@ -40,11 +40,22 @@ async fn main() -> Result<()> {
     crate::db::run_migrations(&pool)?;
 
     let app = route("/", get(|| async { handlers::index() }))
-        .route("/apps", get(handlers::apps_list))
-        .route("/apps/:id", get(handlers::versions_list))
-        .route(
-            "/apps/create",
-            get(handlers::apps_create).post(|| async { handlers::apps_create_post() }),
+        .nest(
+            "/users",
+            route(
+                "/create",
+                get(handlers::users::create).post(handlers::users::create_post),
+            )
+            .route("/", get(handlers::users::list)),
+        )
+        .nest(
+            "/apps",
+            route("/:id", get(handlers::versions_list))
+                .route(
+                    "/create",
+                    get(handlers::apps::create).post(|| async { handlers::apps::create_post() }),
+                )
+                .route("/", get(handlers::apps::list)),
         )
         .route("/report", post(handlers::report_save))
         .layer(

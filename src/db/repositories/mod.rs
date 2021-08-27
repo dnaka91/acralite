@@ -3,9 +3,73 @@ use async_trait::async_trait;
 use rusqlite::params;
 
 use super::{
-    models::{App, NewApp, NewReport, NewVersion, Version},
+    models::{App, NewApp, NewReport, NewUser, NewVersion, User, Version},
     DbConnPool,
 };
+
+#[derive(Debug, thiserror::Error)]
+pub enum UserSaveError {
+    #[error("user with name `{0}` already exists")]
+    AlreadyExists(String),
+    #[error("some error")]
+    Other(#[from] rusqlite::Error),
+    #[error("database error")]
+    Database(#[from] r2d2::Error),
+    #[error("tokio error")]
+    Tokio(#[from] tokio::task::JoinError),
+}
+
+#[async_trait]
+pub trait UserRepository {
+    async fn list(&self) -> Result<Vec<User>>;
+    async fn save(&self, user: NewUser) -> Result<i64, UserSaveError>;
+}
+
+struct UserRepositoryImpl {
+    pool: DbConnPool,
+}
+
+#[async_trait]
+impl UserRepository for UserRepositoryImpl {
+    async fn list(&self) -> Result<Vec<User>> {
+        self.pool
+            .run(|conn| {
+                conn.prepare("SELECT * FROM users")?
+                    .query_map([], |row| {
+                        Ok(User {
+                            id: row.get(0)?,
+                            username: row.get(1)?,
+                            password: row.get(2)?,
+                        })
+                    })?
+                    .map(|row| row.map_err(Into::into))
+                    .collect()
+            })
+            .await
+    }
+
+    async fn save(&self, user: NewUser) -> Result<i64, UserSaveError> {
+        self.pool
+            .run(move |conn| {
+                let count = conn
+                    .prepare("SELECT COUNT(*) FROM users WHERE username = ?")?
+                    .query_row([&user.username], |row| row.get::<_, u64>(0))?;
+
+                if count > 0 {
+                    return Err(UserSaveError::AlreadyExists(user.username));
+                }
+
+                conn.prepare("INSERT INTO users(username, password) VALUES (?,?)")?
+                    .insert(params![user.username, user.password])
+                    .map_err(Into::into)
+            })
+            .await
+    }
+}
+
+pub fn user_repo(pool: DbConnPool) -> impl UserRepository {
+    UserRepositoryImpl { pool }
+}
 
 #[async_trait]
 pub trait AppRepository {

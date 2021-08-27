@@ -1,4 +1,16 @@
 #[derive(Debug)]
+pub struct User {
+    pub id: i64,
+    pub username: String,
+    pub password: String,
+}
+
+pub struct NewUser {
+    pub username: String,
+    pub password: String,
+}
+
+#[derive(Debug)]
 pub struct App {
     pub id: i64,
     pub user_id: i64,

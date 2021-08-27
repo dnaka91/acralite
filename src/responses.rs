@@ -1,6 +1,6 @@
 use askama::Template;
 use axum::response::{self, IntoResponse};
-use hyper::{Body, Response, StatusCode};
+use hyper::{Body, Response, StatusCode, header::LOCATION};
 
 pub struct HtmlTemplate<T>(pub T);
 
@@ -16,5 +16,17 @@ where
                 .body(Body::empty())
                 .unwrap(),
         }
+    }
+}
+
+pub struct Redirect<'a>(pub &'a str);
+
+impl<'a> IntoResponse for Redirect<'a> {
+    fn into_response(self) -> Response<Body> {
+        Response::builder()
+            .status(StatusCode::SEE_OTHER)
+            .header(LOCATION, self.0)
+            .body(Body::empty())
+            .unwrap()
     }
 }

@@ -1,6 +1,6 @@
 #![allow(clippy::unused_async)]
 
-use anyhow::{anyhow, Context, Result};
+use anyhow::{Context, Result};
 use axum::{
     extract::{ContentLengthLimit, Extension, Json, UrlParams},
     prelude::*,
@@ -11,17 +11,49 @@ use serde_json::Value;
 use tokio::fs;
 use tracing::{error, info, warn};
 
+pub mod apps;
+pub mod users;
+
 use crate::{
     db::{
         models::{NewReport, NewVersion},
-        repositories::{self, AppRepository, ReportRepository, VersionRepository},
+        repositories::{self, AppRepository, ReportRepository, UserSaveError, VersionRepository},
         DbConnPool,
     },
     extractors::User,
     report::Report,
     responses::HtmlTemplate,
-    retrace, templates,
+    retrace,
+    templates::{self, ErrorPage},
 };
+
+use self::users::UserError;
+
+#[derive(derive_more::From)]
+pub enum AppError {
+    User(UserError),
+}
+
+impl IntoResponse for AppError {
+    fn into_response(self) -> Response<Body> {
+        let (status, message) = match self {
+            Self::User(err) => match err {
+                UserError::Save(err) => match err {
+                    UserSaveError::AlreadyExists(name) => (
+                        StatusCode::CONFLICT,
+                        format!("The user `{}` already exists", name),
+                    ),
+                    _ => (
+                        StatusCode::INTERNAL_SERVER_ERROR,
+                        format!("An internal error happened: {:?}", err),
+                    ),
+                },
+            },
+        };
+
+        HtmlTemplate(ErrorPage { status, message }).into_response()
+    }
+}
 
 pub fn index() -> impl IntoResponse {
     Response::builder()
@@ -29,23 +61,6 @@ pub fn index() -> impl IntoResponse {
         .header(LOCATION, "/apps")
         .body(Body::empty())
         .unwrap()
-}
-
-pub async fn apps_list(Extension(db): Extension<DbConnPool>) -> impl IntoResponse {
-    let app_repo = repositories::app_repo(db);
-    let apps = app_repo.list().await.unwrap();
-
-    HtmlTemplate(templates::apps::Index { apps })
-}
-
-pub async fn apps_create() -> impl IntoResponse {
-    HtmlTemplate(templates::apps::Create {})
-}
-
-pub fn apps_create_post() -> impl IntoResponse {
-    HtmlTemplate(templates::apps::CreateResult {
-        result: Err(anyhow!("not implemented yet!")),
-    })
 }
 
 pub async fn versions_list(

@@ -1,3 +1,6 @@
+use askama::Template;
+use hyper::StatusCode;
+
 pub mod apps {
     use anyhow::Result;
     use askama::Template;
@@ -26,4 +29,27 @@ pub mod apps {
         pub app: App,
         pub versions: Vec<Version>,
     }
+}
+
+pub mod users {
+    use askama::Template;
+
+    use crate::db::models::User;
+
+    #[derive(Template)]
+    #[template(path = "users/list.html")]
+    pub struct List {
+        pub users: Vec<User>,
+    }
+
+    #[derive(Template)]
+    #[template(path = "users/create.html")]
+    pub struct Create {}
+}
+
+#[derive(Template)]
+#[template(path = "error_page.html")]
+pub struct ErrorPage {
+    pub status: StatusCode,
+    pub message: String,
 }

@@ -13,14 +13,15 @@ use rusqlite::Connection;
 pub struct DbConnPool(Arc<Pool<SqliteConnectionManager>>);
 
 impl DbConnPool {
-    pub fn get(&self) -> Result<DbConn> {
+    pub fn get(&self) -> Result<DbConn, r2d2::Error> {
         self.0.get().map(DbConn).map_err(Into::into)
     }
 
-    pub async fn run<F, T>(&self, f: F) -> Result<T>
+    pub async fn run<F, T, E>(&self, f: F) -> Result<T, E>
     where
-        F: FnOnce(&mut Connection) -> Result<T> + Send + Sync + 'static,
+        F: FnOnce(&mut Connection) -> Result<T, E> + Send + Sync + 'static,
         T: Send + Sync + 'static,
+        E: Send + Sync + 'static + From<r2d2::Error> + From<tokio::task::JoinError>,
     {
         let pool = self.clone();
 
