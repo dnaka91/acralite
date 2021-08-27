@@ -1,12 +1,14 @@
 #![allow(clippy::unused_async)]
 
+use std::convert::Infallible;
+
 use anyhow::{Context, Result};
 use axum::{
-    extract::{ContentLengthLimit, Extension, Json, UrlParams},
-    prelude::*,
-    response::IntoResponse,
+    body::{Bytes, Full},
+    extract::{ContentLengthLimit, Extension, Json, Path},
+    http::{Response, StatusCode},
+    response::{IntoResponse, Redirect},
 };
-use hyper::{header::LOCATION, Response, StatusCode};
 use serde_json::Value;
 use tokio::fs;
 use tracing::{error, info, warn};
@@ -14,6 +16,7 @@ use tracing::{error, info, warn};
 pub mod apps;
 pub mod users;
 
+use self::users::UserError;
 use crate::{
     db::{
         models::{NewReport, NewVersion},
@@ -27,15 +30,16 @@ use crate::{
     templates::{self, ErrorPage},
 };
 
-use self::users::UserError;
-
 #[derive(derive_more::From)]
 pub enum AppError {
     User(UserError),
 }
 
 impl IntoResponse for AppError {
-    fn into_response(self) -> Response<Body> {
+    type Body = Full<Bytes>;
+    type BodyError = Infallible;
+
+    fn into_response(self) -> Response<Self::Body> {
         let (status, message) = match self {
             Self::User(err) => match err {
                 UserError::Save(err) => match err {
@@ -56,15 +60,11 @@ impl IntoResponse for AppError {
 }
 
 pub fn index() -> impl IntoResponse {
-    Response::builder()
-        .status(StatusCode::TEMPORARY_REDIRECT)
-        .header(LOCATION, "/apps")
-        .body(Body::empty())
-        .unwrap()
+    Redirect::temporary("/apps".parse().unwrap())
 }
 
 pub async fn versions_list(
-    UrlParams((id,)): UrlParams<(i64,)>,
+    Path((id,)): Path<(i64,)>,
     Extension(db): Extension<DbConnPool>,
 ) -> impl IntoResponse {
     let version_repo = repositories::version_repo(db.clone());

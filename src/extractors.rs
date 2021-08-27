@@ -1,17 +1,18 @@
-use std::sync::Arc;
+use std::{convert::Infallible, sync::Arc};
 
 use axum::{
+    body::{Bytes, Full},
     extract::{
         rejection::{ExtensionRejection, TypedHeaderRejection},
         Extension, FromRequest, RequestParts, TypedHeader,
     },
+    http::{
+        header::{AUTHORIZATION, WWW_AUTHENTICATE},
+        Response, StatusCode,
+    },
     response::IntoResponse,
 };
 use headers::{authorization::Basic, Authorization};
-use hyper::{
-    header::{AUTHORIZATION, WWW_AUTHENTICATE},
-    Body, Response, StatusCode,
-};
 
 use crate::settings::Auth;
 
@@ -59,14 +60,17 @@ pub enum AuthRejection {
 }
 
 impl IntoResponse for AuthRejection {
-    fn into_response(self) -> Response<Body> {
+    type Body = Full<Bytes>;
+    type BodyError = Infallible;
+
+    fn into_response(self) -> Response<Self::Body> {
         match self {
             Self::ExtensionRejection(r) => r.into_response(),
             Self::TypedHeaderRejection(r) => r.into_response(),
             Self::InvalidCredentials => Response::builder()
                 .status(StatusCode::UNAUTHORIZED)
                 .header(WWW_AUTHENTICATE, "Basic")
-                .body(Body::empty())
+                .body(Full::default())
                 .unwrap(),
         }
     }

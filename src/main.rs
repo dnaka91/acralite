@@ -5,8 +5,12 @@
 use std::{env, net::SocketAddr, sync::Arc, time::Duration};
 
 use anyhow::Result;
-use axum::{prelude::*, AddExtensionLayer};
-use hyper::Server;
+use axum::{
+    body::Body,
+    handler::{get, post},
+    http::Request,
+    AddExtensionLayer, Router, Server,
+};
 use tokio::signal;
 use tower::ServiceBuilder;
 use tower_http::{
@@ -39,18 +43,21 @@ async fn main() -> Result<()> {
     let pool = crate::db::create_pool()?;
     crate::db::run_migrations(&pool)?;
 
-    let app = route("/", get(|| async { handlers::index() }))
+    let app = Router::new()
+        .route("/", get(|| async { handlers::index() }))
         .nest(
             "/users",
-            route(
-                "/create",
-                get(handlers::users::create).post(handlers::users::create_post),
-            )
-            .route("/", get(handlers::users::list)),
+            Router::new()
+                .route(
+                    "/create",
+                    get(handlers::users::create).post(handlers::users::create_post),
+                )
+                .route("/", get(handlers::users::list)),
         )
         .nest(
             "/apps",
-            route("/:id", get(handlers::versions_list))
+            Router::new()
+                .route("/:id", get(handlers::versions_list))
                 .route(
                     "/create",
                     get(handlers::apps::create).post(|| async { handlers::apps::create_post() }),

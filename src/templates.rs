@@ -1,5 +1,5 @@
 use askama::Template;
-use hyper::StatusCode;
+use axum::http::StatusCode;
 
 pub mod apps {
     use anyhow::Result;

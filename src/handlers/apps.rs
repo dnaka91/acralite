@@ -1,12 +1,14 @@
 use anyhow::anyhow;
 use axum::{extract::Extension, response::IntoResponse};
 
-use crate::db::{
-    repositories::{self, AppRepository},
-    DbConnPool,
+use crate::{
+    db::{
+        repositories::{self, AppRepository},
+        DbConnPool,
+    },
+    responses::HtmlTemplate,
+    templates,
 };
-use crate::responses::HtmlTemplate;
-use crate::templates;
 
 pub async fn list(Extension(db): Extension<DbConnPool>) -> impl IntoResponse {
     let app_repo = repositories::app_repo(db);

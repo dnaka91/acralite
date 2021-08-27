@@ -1,21 +1,19 @@
 use axum::{
     extract::{Extension, Form},
-    response::IntoResponse,
+    response::{IntoResponse, Redirect},
 };
-use hyper::{header::LOCATION, Body, Response, StatusCode};
 use serde::Deserialize;
 
+use super::AppError;
 use crate::{
     db::{
         models::NewUser,
         repositories::{self, UserRepository, UserSaveError},
         DbConnPool,
     },
-    responses::{HtmlTemplate, Redirect},
+    responses::HtmlTemplate,
     templates,
 };
-
-use super::AppError;
 
 #[derive(Debug, thiserror::Error)]
 pub enum UserError {
@@ -57,6 +55,5 @@ pub async fn create_post(
         .save(data.into())
         .await
         .map_err(UserError::Save)?;
-
-    Ok(Redirect("/users"))
+    Ok(Redirect::to("/users".parse().unwrap()))
 }
