@@ -7,8 +7,9 @@ use std::{env, net::SocketAddr, sync::Arc, time::Duration};
 use anyhow::Result;
 use axum::{
     body::Body,
-    handler::{get, post},
+    error_handling::HandleErrorLayer,
     http::Request,
+    routing::{get, post},
     AddExtensionLayer, Router, Server,
 };
 use tokio::signal;
@@ -67,6 +68,7 @@ async fn main() -> Result<()> {
         .route("/report", post(handlers::report_save))
         .layer(
             ServiceBuilder::new()
+                .layer(HandleErrorLayer::new(handlers::error::timeout))
                 .timeout(Duration::from_secs(10))
                 .layer(
                     TraceLayer::new_for_http()

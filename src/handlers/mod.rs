@@ -14,6 +14,7 @@ use tokio::fs;
 use tracing::{error, info, warn};
 
 pub mod apps;
+pub mod error;
 pub mod users;
 
 use self::users::UserError;
