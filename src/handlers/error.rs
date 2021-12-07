@@ -4,7 +4,7 @@ use axum::BoxError;
 use hyper::StatusCode;
 use tower::timeout::error::Elapsed;
 
-pub fn timeout(err: BoxError) -> StatusCode {
+pub async fn timeout(err: BoxError) -> StatusCode {
     if err.is::<Elapsed>() {
         StatusCode::REQUEST_TIMEOUT
     } else {

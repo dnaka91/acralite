@@ -1,10 +1,8 @@
 #![allow(clippy::unused_async)]
 
-use std::convert::Infallible;
-
 use anyhow::{Context, Result};
 use axum::{
-    body::{Bytes, Full},
+    body::BoxBody,
     extract::{ContentLengthLimit, Extension, Json, Path},
     http::{Response, StatusCode},
     response::{IntoResponse, Redirect},
@@ -37,10 +35,7 @@ pub enum AppError {
 }
 
 impl IntoResponse for AppError {
-    type Body = Full<Bytes>;
-    type BodyError = Infallible;
-
-    fn into_response(self) -> Response<Self::Body> {
+    fn into_response(self) -> Response<BoxBody> {
         let (status, message) = match self {
             Self::User(err) => match err {
                 UserError::Save(err) => match err {

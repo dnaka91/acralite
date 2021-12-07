@@ -1,7 +1,7 @@
-use std::{convert::Infallible, sync::Arc};
+use std::sync::Arc;
 
 use axum::{
-    body::{Bytes, Full},
+    body::{self, BoxBody, Empty},
     extract::{
         rejection::{ExtensionRejection, TypedHeaderRejection},
         Extension, FromRequest, RequestParts, TypedHeader,
@@ -60,17 +60,14 @@ pub enum AuthRejection {
 }
 
 impl IntoResponse for AuthRejection {
-    type Body = Full<Bytes>;
-    type BodyError = Infallible;
-
-    fn into_response(self) -> Response<Self::Body> {
+    fn into_response(self) -> Response<BoxBody> {
         match self {
             Self::ExtensionRejection(r) => r.into_response(),
             Self::TypedHeaderRejection(r) => r.into_response(),
             Self::InvalidCredentials => Response::builder()
                 .status(StatusCode::UNAUTHORIZED)
                 .header(WWW_AUTHENTICATE, "Basic")
-                .body(Full::default())
+                .body(body::boxed(Empty::new()))
                 .unwrap(),
         }
     }
