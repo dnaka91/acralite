@@ -1,3 +1,9 @@
+[advisories]
+ignore = [
+    "RUSTSEC-2020-0071",
+    "RUSTSEC-2020-0159",
+]
+
 [licenses]
 allow-osi-fsf-free = "either"
 exceptions = [
@@ -6,8 +12,5 @@ exceptions = [
 
 [bans]
 skip = [
-    { name = "cfg-if", version = "=0.1.10" },
-]
-skip-tree = [
-    { name = "pin-project", version = "=0.4.27" },
+    { name = "itoa", version = "=0.4.8" },
 ]
