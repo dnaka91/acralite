@@ -25,7 +25,6 @@ mod db;
 mod extractors;
 mod handlers;
 mod report;
-mod responses;
 mod retrace;
 mod settings;
 mod templates;

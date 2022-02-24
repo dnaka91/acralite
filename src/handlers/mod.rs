@@ -24,7 +24,6 @@ use crate::{
     },
     extractors::User,
     report::Report,
-    responses::HtmlTemplate,
     retrace,
     templates::{self, ErrorPage},
 };
@@ -51,7 +50,7 @@ impl IntoResponse for AppError {
             },
         };
 
-        HtmlTemplate(ErrorPage { status, message }).into_response()
+        ErrorPage { status, message }.into_response()
     }
 }
 
@@ -69,7 +68,7 @@ pub async fn versions_list(
     let app = app_repo.get(id).await.unwrap();
     let versions = version_repo.list_by_app(id).await.unwrap();
 
-    HtmlTemplate(templates::apps::Details { app, versions })
+    templates::apps::Details { app, versions }
 }
 
 pub async fn report_save(

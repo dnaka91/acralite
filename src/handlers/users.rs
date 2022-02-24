@@ -11,7 +11,6 @@ use crate::{
         repositories::{self, UserRepository, UserSaveError},
         DbConnPool,
     },
-    responses::HtmlTemplate,
     templates,
 };
 
@@ -25,11 +24,11 @@ pub async fn list(Extension(db): Extension<DbConnPool>) -> impl IntoResponse {
     let user_repo = repositories::user_repo(db);
     let users = user_repo.list().await.unwrap();
 
-    HtmlTemplate(templates::users::List { users })
+    templates::users::List { users }
 }
 
 pub async fn create() -> impl IntoResponse {
-    HtmlTemplate(templates::users::Create {})
+    templates::users::Create {}
 }
 
 #[derive(Deserialize)]
