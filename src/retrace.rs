@@ -2,13 +2,10 @@ use anyhow::Result;
 use proguard::ProguardMapper;
 use tokio::fs;
 
-#[cfg(debug_assertions)]
-const MAPPING: &str = "mapping.txt";
-#[cfg(not(debug_assertions))]
-const MAPPING: &str = concat!("/var/lib/", env!("CARGO_PKG_NAME"), "/mapping.txt");
+use crate::dirs::DIRS;
 
 pub async fn retrace(stacktrace: &str) -> Result<String> {
-    let mapping = fs::read_to_string(MAPPING).await?;
+    let mapping = fs::read_to_string(DIRS.mapping_file()).await?;
     ProguardMapper::from(mapping.as_ref())
         .remap_stacktrace(stacktrace)
         .map_err(Into::into)

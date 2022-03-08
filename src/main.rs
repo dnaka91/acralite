@@ -2,7 +2,12 @@
 #![deny(rust_2018_idioms, clippy::all, clippy::pedantic)]
 #![warn(clippy::nursery)]
 
-use std::{env, net::SocketAddr, sync::Arc, time::Duration};
+use std::{
+    env,
+    net::{Ipv4Addr, SocketAddr},
+    sync::Arc,
+    time::Duration,
+};
 
 use anyhow::Result;
 use axum::{
@@ -20,9 +25,11 @@ use tower_http::{
     trace::{DefaultOnResponse, TraceLayer},
     LatencyUnit,
 };
-use tracing::{info, warn};
+use tracing::{info, warn, Level};
+use tracing_subscriber::{filter::Targets, prelude::*};
 
 mod db;
+mod dirs;
 mod extractors;
 mod handlers;
 mod report;
@@ -30,13 +37,23 @@ mod retrace;
 mod settings;
 mod templates;
 
+const ADDRESS: Ipv4Addr = if cfg!(debug_assertions) {
+    Ipv4Addr::LOCALHOST
+} else {
+    Ipv4Addr::UNSPECIFIED
+};
+
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
-    env::set_var(
-        "RUST_LOG",
-        "info,acralite=debug,axum=debug,tower_http=debug",
-    );
-    tracing_subscriber::fmt::init();
+    tracing_subscriber::registry()
+        .with(tracing_subscriber::fmt::layer())
+        .with(
+            Targets::new()
+                .with_target(env!("CARGO_CRATE_NAME"), Level::TRACE)
+                .with_target("tower_http", Level::TRACE)
+                .with_default(Level::INFO),
+        )
+        .init();
 
     let settings = settings::load()?;
     let settings = Arc::new(settings.auth);
@@ -82,7 +99,7 @@ async fn main() -> Result<()> {
                 .into_inner(),
         );
 
-    let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
+    let addr = SocketAddr::from((ADDRESS, 8080));
 
     let server = Server::try_bind(&addr)?
         .serve(app.into_make_service())
@@ -90,7 +107,7 @@ async fn main() -> Result<()> {
             signal::ctrl_c().await.ok();
         });
 
-    info!("listening on {}", addr);
+    info!("listening on http://{}", addr);
 
     server.await?;
 

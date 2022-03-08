@@ -10,6 +10,8 @@ use r2d2::{ManageConnection, Pool, PooledConnection};
 use r2d2_sqlite::SqliteConnectionManager;
 use rusqlite::Connection;
 
+use crate::dirs::DIRS;
+
 pub struct DbConnPool(Arc<Pool<SqliteConnectionManager>>);
 
 impl DbConnPool {
@@ -55,18 +57,12 @@ impl DerefMut for DbConn {
     }
 }
 
-#[cfg(debug_assertions)]
-const DB_PATH: &str = "data.db";
-#[cfg(not(debug_assertions))]
-const DB_PATH: &str = concat!("/var/lib/", env!("CARGO_PKG_NAME"), "/data.db");
-
 pub fn create_pool() -> Result<DbConnPool> {
     let manager = if cfg!(test) {
         SqliteConnectionManager::memory()
     } else {
-        #[cfg(not(debug_assertions))]
-        std::fs::create_dir_all(concat!("/var/lib/", env!("CARGO_PKG_NAME")))?;
-        SqliteConnectionManager::file(DB_PATH)
+        std::fs::create_dir_all(DIRS.data_dir())?;
+        SqliteConnectionManager::file(DIRS.db_file())
     }
     .with_init(init_connection);
 

@@ -22,6 +22,7 @@ use crate::{
         repositories::{self, AppRepository, ReportRepository, UserSaveError, VersionRepository},
         DbConnPool,
     },
+    dirs::DIRS,
     extractors::User,
     report::Report,
     retrace,
@@ -123,11 +124,6 @@ pub async fn report_save(
     StatusCode::OK
 }
 
-#[cfg(debug_assertions)]
-const REPORTS_DIR: &str = "reports";
-#[cfg(not(debug_assertions))]
-const REPORTS_DIR: &str = concat!("/var/lib/", env!("CARGO_PKG_NAME"), "/reports");
-
 async fn save_raw(raw: &Value) -> Result<()> {
     let report_id = raw
         .as_object()
@@ -135,10 +131,10 @@ async fn save_raw(raw: &Value) -> Result<()> {
         .and_then(Value::as_str)
         .context("report id is missing")?;
 
-    fs::create_dir_all(REPORTS_DIR).await?;
+    fs::create_dir_all(DIRS.reports_dir()).await?;
 
     fs::write(
-        format!("{}/{}.json", REPORTS_DIR, report_id),
+        format!("{}/{}.json", DIRS.reports_dir(), report_id),
         serde_json::to_vec(raw)?,
     )
     .await

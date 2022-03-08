@@ -1,5 +1,9 @@
-use anyhow::{bail, Result};
+use std::fs;
+
+use anyhow::{Context, Result};
 use serde::Deserialize;
+
+use crate::dirs::DIRS;
 
 #[derive(Clone, Deserialize)]
 pub struct Settings {
@@ -13,15 +17,6 @@ pub struct Auth {
 }
 
 pub fn load() -> Result<Settings> {
-    let locations = &[
-        concat!("/etc/", env!("CARGO_PKG_NAME"), "/config.toml"),
-        concat!("/app/", env!("CARGO_PKG_NAME"), ".toml"),
-        concat!(env!("CARGO_PKG_NAME"), ".toml"),
-    ];
-    let buf = locations.iter().find_map(|loc| std::fs::read(loc).ok());
-
-    match buf {
-        Some(buf) => Ok(toml::from_slice(&buf)?),
-        None => bail!("failed finding settings"),
-    }
+    let buf = fs::read(DIRS.settings_file()).context("failed reading settings file")?;
+    toml::from_slice(&buf).context("failed parsing settings")
 }

@@ -1,6 +1,5 @@
+/.local
 /reports
 /target
 
-acralite.toml
-data.db
 mapping.txt
