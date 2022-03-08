@@ -8,9 +8,10 @@ use anyhow::Result;
 use axum::{
     body::Body,
     error_handling::HandleErrorLayer,
+    extract::Extension,
     http::Request,
     routing::{get, post},
-    AddExtensionLayer, Router, Server,
+    Router, Server,
 };
 use tokio::signal;
 use tower::ServiceBuilder;
@@ -76,8 +77,8 @@ async fn main() -> Result<()> {
                         .on_response(DefaultOnResponse::new().latency_unit(LatencyUnit::Micros)),
                 )
                 .layer(CompressionLayer::new())
-                .layer(AddExtensionLayer::new(pool))
-                .layer(AddExtensionLayer::new(settings))
+                .layer(Extension(pool))
+                .layer(Extension(settings))
                 .into_inner(),
         );
 
