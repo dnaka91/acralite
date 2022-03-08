@@ -11,20 +11,14 @@ use std::{
 
 use anyhow::Result;
 use axum::{
-    body::Body,
     error_handling::HandleErrorLayer,
     extract::Extension,
-    http::Request,
     routing::{get, post},
     Router, Server,
 };
 use tokio::signal;
 use tower::ServiceBuilder;
-use tower_http::{
-    compression::CompressionLayer,
-    trace::{DefaultOnResponse, TraceLayer},
-    LatencyUnit,
-};
+use tower_http::{compression::CompressionLayer, trace::TraceLayer};
 use tracing::{info, warn, Level};
 use tracing_subscriber::{filter::Targets, prelude::*};
 
@@ -87,12 +81,7 @@ async fn main() -> Result<()> {
             ServiceBuilder::new()
                 .layer(HandleErrorLayer::new(handlers::error::timeout))
                 .timeout(Duration::from_secs(10))
-                .layer(
-                    TraceLayer::new_for_http()
-                        .make_span_with(|_: &Request<Body>| tracing::debug_span!("api"))
-                        .on_request(())
-                        .on_response(DefaultOnResponse::new().latency_unit(LatencyUnit::Micros)),
-                )
+                .layer(TraceLayer::new_for_http())
                 .layer(CompressionLayer::new())
                 .layer(Extension(pool))
                 .layer(Extension(settings))
