@@ -16,7 +16,7 @@ use axum::{
     routing::{get, post},
     Router, Server,
 };
-use tokio::signal;
+use tokio_shutdown::Shutdown;
 use tower::ServiceBuilder;
 use tower_http::{compression::CompressionLayer, trace::TraceLayer};
 use tracing::{info, warn, Level};
@@ -89,12 +89,11 @@ async fn main() -> Result<()> {
         );
 
     let addr = SocketAddr::from((ADDRESS, 8080));
+    let shutdown = Shutdown::new()?;
 
     let server = Server::try_bind(&addr)?
         .serve(app.into_make_service())
-        .with_graceful_shutdown(async {
-            signal::ctrl_c().await.ok();
-        });
+        .with_graceful_shutdown(shutdown.handle());
 
     info!("listening on http://{}", addr);
 

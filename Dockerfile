@@ -28,7 +28,6 @@ COPY --from=builder /volume/target/x86_64-unknown-linux-musl/release/acralite /b
 COPY --from=newuser /tmp/group /tmp/passwd /etc/
 
 EXPOSE 8080
-STOPSIGNAL SIGINT
 USER acralite
 
 ENTRYPOINT ["/bin/acralite"]

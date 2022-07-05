@@ -27,7 +27,8 @@ serde = { version = "1.0.137", features = ["derive"] }
 serde_json = "1.0.81"
 serde_repr = "0.1.8"
 thiserror = "1.0.31"
-tokio = { version = "1.18.2", features = ["fs", "macros", "parking_lot", "process", "rt", "signal"] }
+tokio = { version = "1.18.2", features = ["fs", "macros", "parking_lot", "process", "rt"] }
+tokio-shutdown = "0.1.2"
 toml = "0.5.9"
 tower = { version = "0.4.12", features = ["timeout"] }
 tower-http = { version = "0.2.4", features = ["compression-gzip", "decompression-gzip", "trace"] }
