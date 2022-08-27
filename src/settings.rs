@@ -8,12 +8,24 @@ use crate::dirs::DIRS;
 #[derive(Clone, Deserialize)]
 pub struct Settings {
     pub auth: Auth,
+    #[serde(default)]
+    pub tracing: Option<Tracing>,
 }
 
 #[derive(Clone, Deserialize)]
 pub struct Auth {
     pub username: String,
     pub password: String,
+}
+
+#[derive(Clone, Deserialize)]
+pub struct Tracing {
+    pub otlp: Otlp,
+}
+
+#[derive(Clone, Deserialize)]
+pub struct Otlp {
+    pub endpoint: String,
 }
 
 pub fn load() -> Result<Settings> {

@@ -1,6 +1,5 @@
 #![forbid(unsafe_code)]
 #![deny(rust_2018_idioms, clippy::all, clippy::pedantic)]
-#![warn(clippy::nursery)]
 
 use std::{
     env,
@@ -16,10 +15,13 @@ use axum::{
     routing::{get, post},
     Router, Server,
 };
+use opentelemetry::{global, runtime, sdk::Resource};
+use opentelemetry_otlp::WithExportConfig;
+use opentelemetry_semantic_conventions::resource;
 use tokio_shutdown::Shutdown;
 use tower::ServiceBuilder;
 use tower_http::{compression::CompressionLayer, trace::TraceLayer};
-use tracing::{info, warn, Level};
+use tracing::{error, info, Level};
 use tracing_subscriber::{filter::Targets, prelude::*};
 
 mod db;
@@ -39,8 +41,38 @@ const ADDRESS: Ipv4Addr = if cfg!(debug_assertions) {
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
+    let mut settings = settings::load()?;
+
+    let opentelemetry = settings
+        .tracing
+        .take()
+        .map(|settings| {
+            global::set_error_handler(|error| {
+                error!(target: "opentelemetry", %error);
+            })?;
+
+            let tracer = opentelemetry_otlp::new_pipeline()
+                .tracing()
+                .with_exporter(
+                    opentelemetry_otlp::new_exporter()
+                        .tonic()
+                        .with_endpoint(settings.otlp.endpoint),
+                )
+                .with_trace_config(opentelemetry::sdk::trace::config().with_resource(
+                    Resource::new([
+                        resource::SERVICE_NAME.string(env!("CARGO_CRATE_NAME")),
+                        resource::SERVICE_VERSION.string(env!("CARGO_PKG_VERSION")),
+                    ]),
+                ))
+                .install_batch(runtime::Tokio)?;
+
+            anyhow::Ok(tracing_opentelemetry::layer().with_tracer(tracer))
+        })
+        .transpose()?;
+
     tracing_subscriber::registry()
         .with(tracing_subscriber::fmt::layer())
+        .with(opentelemetry)
         .with(
             Targets::new()
                 .with_target(env!("CARGO_CRATE_NAME"), Level::TRACE)
@@ -49,7 +81,6 @@ async fn main() -> Result<()> {
         )
         .init();
 
-    let settings = settings::load()?;
     let settings = Arc::new(settings.auth);
 
     let pool = crate::db::create_pool()?;

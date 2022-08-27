@@ -9,7 +9,7 @@ use axum::{
 };
 use serde_json::Value;
 use tokio::fs;
-use tracing::{error, info, warn};
+use tracing::{error, info, warn, instrument};
 
 pub mod apps;
 pub mod error;
@@ -55,10 +55,12 @@ impl IntoResponse for AppError {
     }
 }
 
+#[instrument(skip_all)]
 pub fn index() -> impl IntoResponse {
     Redirect::temporary("/apps".parse().unwrap())
 }
 
+#[instrument(skip_all)]
 pub async fn versions_list(
     Path((id,)): Path<(i64,)>,
     Extension(db): Extension<DbConnPool>,
@@ -72,6 +74,7 @@ pub async fn versions_list(
     templates::apps::Details { app, versions }
 }
 
+#[instrument(skip_all)]
 pub async fn report_save(
     user: User,
     ContentLengthLimit(Json(raw)): ContentLengthLimit<Json<Value>, { 1024 * 512 }>,
@@ -124,6 +127,7 @@ pub async fn report_save(
     StatusCode::OK
 }
 
+#[instrument(skip_all)]
 async fn save_raw(raw: &Value) -> Result<()> {
     let report_id = raw
         .as_object()

@@ -1,5 +1,6 @@
 use anyhow::anyhow;
 use axum::{extract::Extension, response::IntoResponse};
+use tracing::instrument;
 
 use crate::{
     db::{
@@ -9,6 +10,7 @@ use crate::{
     templates,
 };
 
+#[instrument(skip_all)]
 pub async fn list(Extension(db): Extension<DbConnPool>) -> impl IntoResponse {
     let app_repo = repositories::app_repo(db);
     let apps = app_repo.list().await.unwrap();
@@ -16,10 +18,12 @@ pub async fn list(Extension(db): Extension<DbConnPool>) -> impl IntoResponse {
     templates::apps::Index { apps }
 }
 
+#[instrument(skip_all)]
 pub async fn create() -> impl IntoResponse {
     templates::apps::Create {}
 }
 
+#[instrument(skip_all)]
 pub fn create_post() -> impl IntoResponse {
     templates::apps::CreateResult {
         result: Err(anyhow!("not implemented yet!")),

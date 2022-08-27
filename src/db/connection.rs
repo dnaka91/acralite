@@ -19,6 +19,7 @@ impl DbConnPool {
         self.0.get().map(DbConn).map_err(Into::into)
     }
 
+    #[allow(clippy::trait_duplication_in_bounds)]
     pub async fn run<F, T, E>(&self, f: F) -> Result<T, E>
     where
         F: FnOnce(&mut Connection) -> Result<T, E> + Send + Sync + 'static,

@@ -3,6 +3,7 @@ use axum::{
     response::{IntoResponse, Redirect},
 };
 use serde::Deserialize;
+use tracing::instrument;
 
 use super::AppError;
 use crate::{
@@ -20,6 +21,7 @@ pub enum UserError {
     Save(#[from] UserSaveError),
 }
 
+#[instrument(skip_all)]
 pub async fn list(Extension(db): Extension<DbConnPool>) -> impl IntoResponse {
     let user_repo = repositories::user_repo(db);
     let users = user_repo.list().await.unwrap();
@@ -27,6 +29,7 @@ pub async fn list(Extension(db): Extension<DbConnPool>) -> impl IntoResponse {
     templates::users::List { users }
 }
 
+#[instrument(skip_all)]
 pub async fn create() -> impl IntoResponse {
     templates::users::Create {}
 }
@@ -46,6 +49,7 @@ impl From<NewUserForm> for NewUser {
     }
 }
 
+#[instrument(skip_all)]
 pub async fn create_post(
     Form(data): Form<NewUserForm>,
     Extension(db): Extension<DbConnPool>,

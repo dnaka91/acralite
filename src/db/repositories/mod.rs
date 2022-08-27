@@ -1,6 +1,7 @@
 use anyhow::Result;
 use async_trait::async_trait;
 use rusqlite::params;
+use tracing::instrument;
 
 use super::{
     models::{App, NewApp, NewReport, NewUser, NewVersion, User, Version},
@@ -31,6 +32,7 @@ struct UserRepositoryImpl {
 
 #[async_trait]
 impl UserRepository for UserRepositoryImpl {
+    #[instrument(skip_all)]
     async fn list(&self) -> Result<Vec<User>> {
         self.pool
             .run(|conn| {
@@ -48,6 +50,7 @@ impl UserRepository for UserRepositoryImpl {
             .await
     }
 
+    #[instrument(skip_all)]
     async fn save(&self, user: NewUser) -> Result<i64, UserSaveError> {
         self.pool
             .run(move |conn| {
@@ -85,6 +88,7 @@ struct AppRepositoryImpl {
 
 #[async_trait]
 impl AppRepository for AppRepositoryImpl {
+    #[instrument(skip_all)]
     async fn save(&self, app: NewApp) -> Result<i64> {
         self.pool
             .run(move |conn| {
@@ -97,6 +101,7 @@ impl AppRepository for AppRepositoryImpl {
             .await
     }
 
+    #[instrument(skip_all)]
     async fn list(&self) -> Result<Vec<App>> {
         self.pool
             .run(|conn| {
@@ -116,6 +121,7 @@ impl AppRepository for AppRepositoryImpl {
             .await
     }
 
+    #[instrument(skip_all)]
     async fn get(&self, id: i64) -> Result<App> {
         self.pool
             .run(move |conn| {
@@ -134,6 +140,7 @@ impl AppRepository for AppRepositoryImpl {
             .await
     }
 
+    #[instrument(skip_all)]
     async fn get_by_username(&self, username: String) -> Result<App> {
         self.pool
             .run(move |conn| {
@@ -171,6 +178,7 @@ struct VersionRepositoryImpl {
 
 #[async_trait]
 impl VersionRepository for VersionRepositoryImpl {
+    #[instrument(skip_all)]
     async fn save(&self, version: NewVersion) -> Result<i64> {
         self.pool
             .run(move |conn| {
@@ -181,6 +189,7 @@ impl VersionRepository for VersionRepositoryImpl {
             .await
     }
 
+    #[instrument(skip_all)]
     async fn get_or_create(&self, version: NewVersion) -> Result<i64> {
         self.pool
             .run(move |conn| {
@@ -200,6 +209,7 @@ impl VersionRepository for VersionRepositoryImpl {
             .await
     }
 
+    #[instrument(skip_all)]
     async fn list(&self) -> Result<Vec<Version>> {
         self.pool
             .run(|conn| {
@@ -218,6 +228,7 @@ impl VersionRepository for VersionRepositoryImpl {
             .await
     }
 
+    #[instrument(skip_all)]
     async fn list_by_app(&self, id: i64) -> Result<Vec<Version>> {
         self.pool
             .run(move |conn| {
@@ -252,6 +263,7 @@ struct ReportRepositoryImpl {
 
 #[async_trait]
 impl ReportRepository for ReportRepositoryImpl {
+    #[instrument(skip_all)]
     async fn save(&self, report: NewReport) -> Result<i64> {
         self.pool
             .run(move |conn| {
