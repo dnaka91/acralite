@@ -30,7 +30,7 @@ impl DbConnPool {
 
         tokio::task::spawn_blocking(move || {
             let mut conn = pool.get()?;
-            f(&mut *conn)
+            f(&mut conn)
         })
         .await?
     }
@@ -77,6 +77,6 @@ pub fn create_pool() -> Result<DbConnPool> {
 }
 
 fn init_connection(conn: &mut Connection) -> Result<(), rusqlite::Error> {
-    conn.pragma_update(None, "foreign_keys", &"ON")?;
+    conn.pragma_update(None, "foreign_keys", "ON")?;
     Ok(())
 }

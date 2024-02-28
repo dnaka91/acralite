@@ -11,7 +11,7 @@ pub struct Dirs {
     mapping_file: Utf8PathBuf,
     db_file: Utf8PathBuf,
     reports_dir: Utf8PathBuf,
-    dirs: UnifiedDirs,
+    base: UnifiedDirs,
 }
 
 impl Dirs {
@@ -25,7 +25,7 @@ impl Dirs {
             mapping_file: dirs.data_dir().join("mapping.txt"),
             db_file: dirs.data_dir().join("data.db"),
             reports_dir: dirs.data_dir().join("reports"),
-            dirs,
+            base: dirs,
         })
     }
 
@@ -46,6 +46,6 @@ impl Dirs {
     }
 
     pub fn data_dir(&self) -> &Utf8Path {
-        self.dirs.data_dir()
+        self.base.data_dir()
     }
 }

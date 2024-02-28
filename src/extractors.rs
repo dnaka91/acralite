@@ -1,17 +1,16 @@
 use std::sync::Arc;
 
 use axum::{
-    body::{self, BoxBody, Empty},
-    extract::{
-        rejection::{ExtensionRejection, TypedHeaderRejection},
-        Extension, FromRequest, RequestParts, TypedHeader,
-    },
+    body::Body,
+    extract::{FromRef, FromRequestParts},
     http::{
         header::{AUTHORIZATION, WWW_AUTHENTICATE},
-        Response, StatusCode,
+        request::Parts,
+        StatusCode,
     },
-    response::IntoResponse,
+    response::{IntoResponse, Response},
 };
+use axum_extra::{typed_header::TypedHeaderRejection, TypedHeader};
 use headers::{authorization::Basic, Authorization};
 
 use crate::settings::Auth;
@@ -25,24 +24,21 @@ impl User {
 }
 
 #[axum::async_trait]
-impl<B> FromRequest<B> for User
+impl<S> FromRequestParts<S> for User
 where
-    B: Send,
+    Arc<Auth>: FromRef<S>,
+    S: Send + Sync,
 {
     type Rejection = AuthRejection;
 
-    async fn from_request(req: &mut RequestParts<B>) -> Result<Self, Self::Rejection> {
-        if !req
-            .headers()
-            .map(|headers| headers.contains_key(AUTHORIZATION))
-            .unwrap_or_default()
-        {
+    async fn from_request_parts(parts: &mut Parts, state: &S) -> Result<Self, Self::Rejection> {
+        if !parts.headers.contains_key(AUTHORIZATION) {
             return Err(Self::Rejection::InvalidCredentials);
         }
 
-        let Extension(settings) = Extension::<Arc<Auth>>::from_request(req).await?;
+        let settings = Arc::<Auth>::from_ref(state);
         let TypedHeader(Authorization(header)) =
-            TypedHeader::<Authorization<Basic>>::from_request(req).await?;
+            TypedHeader::<Authorization<Basic>>::from_request_parts(parts, state).await?;
 
         if header.username() != settings.username || header.password() != settings.password {
             return Err(Self::Rejection::InvalidCredentials);
@@ -54,28 +50,20 @@ where
 
 #[derive(Debug)]
 pub enum AuthRejection {
-    ExtensionRejection(ExtensionRejection),
     TypedHeaderRejection(TypedHeaderRejection),
     InvalidCredentials,
 }
 
 impl IntoResponse for AuthRejection {
-    fn into_response(self) -> Response<BoxBody> {
+    fn into_response(self) -> Response {
         match self {
-            Self::ExtensionRejection(r) => r.into_response(),
             Self::TypedHeaderRejection(r) => r.into_response(),
             Self::InvalidCredentials => Response::builder()
                 .status(StatusCode::UNAUTHORIZED)
                 .header(WWW_AUTHENTICATE, "Basic")
-                .body(body::boxed(Empty::new()))
+                .body(Body::empty())
                 .unwrap(),
         }
-    }
-}
-
-impl From<ExtensionRejection> for AuthRejection {
-    fn from(value: ExtensionRejection) -> Self {
-        Self::ExtensionRejection(value)
     }
 }
 

@@ -11,7 +11,8 @@ use serde_repr::Deserialize_repr;
 #[derive(Debug, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub struct Report {
-    pub report_id: String,
+    #[serde(rename = "REPORT_ID")]
+    pub id: String,
     pub app_version_code: u32,
     pub app_version_name: String,
     pub package_name: String,
@@ -130,6 +131,7 @@ pub struct Configuration {
 }
 
 bitflags! {
+    #[derive(Debug)]
     pub struct ColorMode: u32 {
         const WIDE_COLOR_GAMUT_NO  = 1;
         const WIDE_COLOR_GAMUT_YES = 2;
@@ -150,7 +152,7 @@ impl<'de> Deserialize<'de> for ColorMode {
             type Value = ColorMode;
 
             fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
-                formatter.write_str("color mode endcoded as bit flags")
+                formatter.write_str("color mode encoded as bit flags")
             }
 
             fn visit_u32<E>(self, value: u32) -> Result<Self::Value, E>
@@ -240,6 +242,7 @@ pub enum Orientation {
 }
 
 bitflags! {
+    #[derive(Debug)]
     pub struct ScreenLayout: i32 {
         const SIZE_SMALL  = 1;
         const SIZE_NORMAL = 2;
@@ -306,6 +309,7 @@ pub enum Touchscreen {
 }
 
 bitflags! {
+    #[derive(Debug)]
     pub struct UiMode: i32 {
         const TYPE_NORMAL     = 1;
         const TYPE_DESK       = 2;
@@ -386,6 +390,7 @@ pub struct SizeRange {
 }
 
 bitflags! {
+    #[derive(Debug)]
     pub struct DisplayFlags: u32 {
         const SUPPORTS_PROTECTED_BUFFERS = 1;
         const SECURE                     = 2;
@@ -475,7 +480,7 @@ impl<'de> Deserialize<'de> for Rotation {
                     1 => Rotation::Ninety,
                     2 => Rotation::OneHundredEighty,
                     3 => Rotation::TwoHundredSeventy,
-                    _ => return Err(E::custom(format!("unknown orientation {}", value))),
+                    _ => return Err(E::custom(format!("unknown orientation {value}"))),
                 })
             }
 
@@ -498,7 +503,7 @@ impl<'de> Deserialize<'de> for Rotation {
                     "ROTATION_90" => Rotation::Ninety,
                     "ROTATION_180" => Rotation::OneHundredEighty,
                     "ROTATION_270" => Rotation::TwoHundredSeventy,
-                    _ => return Err(E::custom(format!("unknown orientation '{}'", value))),
+                    _ => return Err(E::custom(format!("unknown orientation '{value}'"))),
                 })
             }
         }

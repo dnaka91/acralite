@@ -15,7 +15,8 @@ pub async fn retrace(stacktrace: &str) -> Result<String> {
 mod tests {
     use proguard::ProguardMapper;
 
-    const MAPPING: &str = include_str!("../mapping.txt");
+    // const MAPPING: &str = include_str!("../mapping.txt");
+    const MAPPING: &str = "";
 
     #[test]
     fn retrace_class() {

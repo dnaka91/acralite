@@ -1,5 +1,5 @@
 use anyhow::anyhow;
-use axum::{extract::Extension, response::IntoResponse};
+use axum::{extract::State, response::IntoResponse};
 use tracing::instrument;
 
 use crate::{
@@ -11,7 +11,7 @@ use crate::{
 };
 
 #[instrument(skip_all)]
-pub async fn list(Extension(db): Extension<DbConnPool>) -> impl IntoResponse {
+pub async fn list(State(db): State<DbConnPool>) -> impl IntoResponse {
     let app_repo = repositories::app_repo(db);
     let apps = app_repo.list().await.unwrap();
 

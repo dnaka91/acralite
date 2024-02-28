@@ -29,6 +29,6 @@ pub struct Otlp {
 }
 
 pub fn load() -> Result<Settings> {
-    let buf = fs::read(DIRS.settings_file()).context("failed reading settings file")?;
-    toml::from_slice(&buf).context("failed parsing settings")
+    let buf = fs::read_to_string(DIRS.settings_file()).context("failed reading settings file")?;
+    toml::from_str(&buf).context("failed parsing settings")
 }

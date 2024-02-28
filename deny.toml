@@ -1,12 +1,24 @@
 [licenses]
-allow-osi-fsf-free = "either"
-exceptions = [
-    { allow = ["AGPL-3.0"], name = "acralite", version = "*" },
+version = 2
+allow = [
+    "Apache-2.0",
+    "BSD-2-Clause",
+    "BSD-3-Clause",
+    "MIT",
 ]
+exceptions = [
+    { allow = ["MPL-2.0"], name = "option-ext" },
+    { allow = ["Unicode-DFS-2016"], name = "unicode-ident" },
+]
+
+[licenses.private]
+ignore = true
 
 [bans]
 skip = [
-    { name = "parking_lot", version = "=0.11.2" },
-    { name = "parking_lot_core", version = "=0.8.5" },
-    { name = "tokio-util", version = "=0.6.9" },
+    { name = "bitflags", version = "1" },
+    { name = "syn", version = "1" },
+]
+skip-tree = [
+    { name = "windows-sys", version = "0.48", depth = 3 },
 ]

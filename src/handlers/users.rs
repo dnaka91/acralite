@@ -1,5 +1,5 @@
 use axum::{
-    extract::{Extension, Form},
+    extract::{Form, State},
     response::{IntoResponse, Redirect},
 };
 use serde::Deserialize;
@@ -22,7 +22,7 @@ pub enum UserError {
 }
 
 #[instrument(skip_all)]
-pub async fn list(Extension(db): Extension<DbConnPool>) -> impl IntoResponse {
+pub async fn list(State(db): State<DbConnPool>) -> impl IntoResponse {
     let user_repo = repositories::user_repo(db);
     let users = user_repo.list().await.unwrap();
 
@@ -51,12 +51,12 @@ impl From<NewUserForm> for NewUser {
 
 #[instrument(skip_all)]
 pub async fn create_post(
+    State(db): State<DbConnPool>,
     Form(data): Form<NewUserForm>,
-    Extension(db): Extension<DbConnPool>,
 ) -> Result<impl IntoResponse, AppError> {
     repositories::user_repo(db)
         .save(data.into())
         .await
         .map_err(UserError::Save)?;
-    Ok(Redirect::to("/users".parse().unwrap()))
+    Ok(Redirect::to("/users"))
 }

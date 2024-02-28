@@ -2,14 +2,13 @@
 
 use anyhow::{Context, Result};
 use axum::{
-    body::BoxBody,
-    extract::{ContentLengthLimit, Extension, Json, Path},
-    http::{Response, StatusCode},
-    response::{IntoResponse, Redirect},
+    extract::{Json, Path, State},
+    http::StatusCode,
+    response::{IntoResponse, Redirect, Response},
 };
 use serde_json::Value;
 use tokio::fs;
-use tracing::{error, info, warn, instrument};
+use tracing::{error, info, instrument, warn};
 
 pub mod apps;
 pub mod error;
@@ -27,6 +26,7 @@ use crate::{
     report::Report,
     retrace,
     templates::{self, ErrorPage},
+    AppState,
 };
 
 #[derive(derive_more::From)]
@@ -35,17 +35,17 @@ pub enum AppError {
 }
 
 impl IntoResponse for AppError {
-    fn into_response(self) -> Response<BoxBody> {
+    fn into_response(self) -> Response {
         let (status, message) = match self {
             Self::User(err) => match err {
                 UserError::Save(err) => match err {
                     UserSaveError::AlreadyExists(name) => (
                         StatusCode::CONFLICT,
-                        format!("The user `{}` already exists", name),
+                        format!("The user `{name}` already exists"),
                     ),
                     _ => (
                         StatusCode::INTERNAL_SERVER_ERROR,
-                        format!("An internal error happened: {:?}", err),
+                        format!("An internal error happened: {err:?}"),
                     ),
                 },
             },
@@ -57,13 +57,13 @@ impl IntoResponse for AppError {
 
 #[instrument(skip_all)]
 pub fn index() -> impl IntoResponse {
-    Redirect::temporary("/apps".parse().unwrap())
+    Redirect::temporary("/apps")
 }
 
 #[instrument(skip_all)]
 pub async fn versions_list(
     Path((id,)): Path<(i64,)>,
-    Extension(db): Extension<DbConnPool>,
+    State(db): State<DbConnPool>,
 ) -> impl IntoResponse {
     let version_repo = repositories::version_repo(db.clone());
     let app_repo = repositories::app_repo(db);
@@ -77,8 +77,8 @@ pub async fn versions_list(
 #[instrument(skip_all)]
 pub async fn report_save(
     user: User,
-    ContentLengthLimit(Json(raw)): ContentLengthLimit<Json<Value>, { 1024 * 512 }>,
-    Extension(db): Extension<DbConnPool>,
+    State(state): State<AppState>,
+    Json(raw): Json<Value>,
 ) -> impl IntoResponse {
     if let Err(e) = save_raw(&raw).await {
         error!("failed saving report to file: {}", e);
@@ -92,9 +92,9 @@ pub async fn report_save(
         }
     };
 
-    let app_repo = repositories::app_repo(db.clone());
-    let version_repo = repositories::version_repo(db.clone());
-    let report_repo = repositories::report_repo(db);
+    let app_repo = repositories::app_repo(state.pool.clone());
+    let version_repo = repositories::version_repo(state.pool.clone());
+    let report_repo = repositories::report_repo(state.pool);
 
     let app = app_repo
         .get_by_username(user.username().to_owned())
@@ -111,7 +111,7 @@ pub async fn report_save(
     report_repo
         .save(NewReport {
             version_id,
-            report_id: report.report_id.clone(),
+            report_id: report.id.clone(),
             crash_date: report.user_crash_date.clone(),
         })
         .await

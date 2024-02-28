@@ -11,18 +11,18 @@ use std::{
 use anyhow::Result;
 use axum::{
     error_handling::HandleErrorLayer,
-    extract::Extension,
+    extract::{DefaultBodyLimit, FromRef},
     routing::{get, post},
-    Router, Server,
+    Router,
 };
-use opentelemetry::{global, runtime, sdk::Resource};
-use opentelemetry_otlp::WithExportConfig;
-use opentelemetry_semantic_conventions::resource;
+use tokio::net::TcpListener;
 use tokio_shutdown::Shutdown;
 use tower::ServiceBuilder;
 use tower_http::{compression::CompressionLayer, trace::TraceLayer};
-use tracing::{error, info, Level};
+use tracing::{info, Level};
 use tracing_subscriber::{filter::Targets, prelude::*};
+
+use self::{db::DbConnPool, settings::Auth};
 
 mod db;
 mod dirs;
@@ -41,38 +41,10 @@ const ADDRESS: Ipv4Addr = if cfg!(debug_assertions) {
 
 #[tokio::main(flavor = "current_thread")]
 async fn main() -> Result<()> {
-    let mut settings = settings::load()?;
-
-    let opentelemetry = settings
-        .tracing
-        .take()
-        .map(|settings| {
-            global::set_error_handler(|error| {
-                error!(target: "opentelemetry", %error);
-            })?;
-
-            let tracer = opentelemetry_otlp::new_pipeline()
-                .tracing()
-                .with_exporter(
-                    opentelemetry_otlp::new_exporter()
-                        .tonic()
-                        .with_endpoint(settings.otlp.endpoint),
-                )
-                .with_trace_config(opentelemetry::sdk::trace::config().with_resource(
-                    Resource::new([
-                        resource::SERVICE_NAME.string(env!("CARGO_CRATE_NAME")),
-                        resource::SERVICE_VERSION.string(env!("CARGO_PKG_VERSION")),
-                    ]),
-                ))
-                .install_batch(runtime::Tokio)?;
-
-            anyhow::Ok(tracing_opentelemetry::layer().with_tracer(tracer))
-        })
-        .transpose()?;
+    let settings = settings::load()?;
 
     tracing_subscriber::registry()
         .with(tracing_subscriber::fmt::layer())
-        .with(opentelemetry)
         .with(
             Targets::new()
                 .with_target(env!("CARGO_CRATE_NAME"), Level::TRACE)
@@ -107,28 +79,47 @@ async fn main() -> Result<()> {
                 )
                 .route("/", get(handlers::apps::list)),
         )
-        .route("/report", post(handlers::report_save))
+        .route(
+            "/report",
+            post(handlers::report_save).layer(DefaultBodyLimit::max(1024 * 512)),
+        )
+        .with_state(AppState { settings, pool })
         .layer(
             ServiceBuilder::new()
                 .layer(HandleErrorLayer::new(handlers::error::timeout))
                 .timeout(Duration::from_secs(10))
                 .layer(TraceLayer::new_for_http())
                 .layer(CompressionLayer::new())
-                .layer(Extension(pool))
-                .layer(Extension(settings))
                 .into_inner(),
         );
 
     let addr = SocketAddr::from((ADDRESS, 8080));
     let shutdown = Shutdown::new()?;
 
-    let server = Server::try_bind(&addr)?
-        .serve(app.into_make_service())
-        .with_graceful_shutdown(shutdown.handle());
+    let listener = TcpListener::bind(addr).await?;
+    let server = axum::serve(listener, app).with_graceful_shutdown(shutdown.handle());
 
     info!("listening on http://{}", addr);
 
     server.await?;
 
     Ok(())
+}
+
+#[derive(Clone)]
+struct AppState {
+    settings: Arc<Auth>,
+    pool: DbConnPool,
+}
+
+impl FromRef<AppState> for Arc<Auth> {
+    fn from_ref(input: &AppState) -> Self {
+        Arc::clone(&input.settings)
+    }
+}
+
+impl FromRef<AppState> for DbConnPool {
+    fn from_ref(input: &AppState) -> Self {
+        input.pool.clone()
+    }
 }
