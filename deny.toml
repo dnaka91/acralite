@@ -18,6 +18,7 @@ ignore = true
 skip = [
     { name = "bitflags", version = "1" },
     { name = "syn", version = "1" },
+    { name = "sync_wrapper", version = "0.1" },
 ]
 skip-tree = [
     { name = "windows-sys", version = "0.48", depth = 3 },
