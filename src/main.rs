@@ -1,5 +1,6 @@
 #![forbid(unsafe_code)]
 #![deny(rust_2018_idioms, clippy::all, clippy::pedantic)]
+#![allow(dead_code)]
 
 use std::{
     env,
@@ -10,16 +11,16 @@ use std::{
 
 use anyhow::Result;
 use axum::{
+    Router,
     error_handling::HandleErrorLayer,
     extract::{DefaultBodyLimit, FromRef},
     routing::{get, post},
-    Router,
 };
 use tokio::net::TcpListener;
 use tokio_shutdown::Shutdown;
 use tower::ServiceBuilder;
 use tower_http::{compression::CompressionLayer, trace::TraceLayer};
-use tracing::{info, Level};
+use tracing::{Level, info};
 use tracing_subscriber::{filter::Targets, prelude::*};
 
 use self::{db::DbConnPool, settings::Auth};

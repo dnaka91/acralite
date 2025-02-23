@@ -4,8 +4,8 @@ use tracing::instrument;
 
 use crate::{
     db::{
-        repositories::{self, AppRepository},
         DbConnPool,
+        repositories::{self, AppRepository},
     },
     templates,
 };

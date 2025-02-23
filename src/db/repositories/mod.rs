@@ -4,8 +4,8 @@ use rusqlite::params;
 use tracing::instrument;
 
 use super::{
-    models::{App, NewApp, NewReport, NewUser, NewVersion, User, Version},
     DbConnPool,
+    models::{App, NewApp, NewReport, NewUser, NewVersion, User, Version},
 };
 
 #[derive(Debug, thiserror::Error)]

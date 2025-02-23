@@ -8,9 +8,9 @@ use tracing::instrument;
 use super::AppError;
 use crate::{
     db::{
+        DbConnPool,
         models::NewUser,
         repositories::{self, UserRepository, UserSaveError},
-        DbConnPool,
     },
     templates,
 };

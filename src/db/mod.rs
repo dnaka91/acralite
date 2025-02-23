@@ -1,7 +1,7 @@
 #![allow(clippy::module_name_repetitions)]
 
 pub use self::{
-    connection::{create_pool, DbConnPool},
+    connection::{DbConnPool, create_pool},
     migrations::run as run_migrations,
 };
 

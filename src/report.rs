@@ -2,8 +2,8 @@ use std::{collections::HashMap, convert::TryFrom, fmt, path::PathBuf};
 
 use bitflags::bitflags;
 use serde::{
-    de::{self, Visitor},
     Deserialize,
+    de::{self, Visitor},
 };
 use serde_json::Value;
 use serde_repr::Deserialize_repr;
@@ -148,7 +148,7 @@ impl<'de> Deserialize<'de> for ColorMode {
     {
         struct ColorModeVisitor;
 
-        impl<'de> Visitor<'de> for ColorModeVisitor {
+        impl Visitor<'_> for ColorModeVisitor {
             type Value = ColorMode;
 
             fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -267,7 +267,7 @@ impl<'de> Deserialize<'de> for ScreenLayout {
     {
         struct ScreenLayoutVisitor;
 
-        impl<'de> Visitor<'de> for ScreenLayoutVisitor {
+        impl Visitor<'_> for ScreenLayoutVisitor {
             type Value = ScreenLayout;
 
             fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -331,7 +331,7 @@ impl<'de> Deserialize<'de> for UiMode {
     {
         struct UiModeVisitor;
 
-        impl<'de> Visitor<'de> for UiModeVisitor {
+        impl Visitor<'_> for UiModeVisitor {
             type Value = UiMode;
 
             fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -407,7 +407,7 @@ impl<'de> Deserialize<'de> for DisplayFlags {
     {
         struct DisplayFlagsVisitor;
 
-        impl<'de> Visitor<'de> for DisplayFlagsVisitor {
+        impl Visitor<'_> for DisplayFlagsVisitor {
             type Value = DisplayFlags;
 
             fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {
@@ -464,7 +464,7 @@ impl<'de> Deserialize<'de> for Rotation {
     {
         struct RotationVisitor;
 
-        impl<'de> Visitor<'de> for RotationVisitor {
+        impl Visitor<'_> for RotationVisitor {
             type Value = Rotation;
 
             fn expecting(&self, formatter: &mut fmt::Formatter<'_>) -> fmt::Result {

@@ -4,14 +4,14 @@ use axum::{
     body::Body,
     extract::{FromRef, FromRequestParts},
     http::{
+        StatusCode,
         header::{AUTHORIZATION, WWW_AUTHENTICATE},
         request::Parts,
-        StatusCode,
     },
     response::{IntoResponse, Response},
 };
-use axum_extra::{typed_header::TypedHeaderRejection, TypedHeader};
-use headers::{authorization::Basic, Authorization};
+use axum_extra::{TypedHeader, typed_header::TypedHeaderRejection};
+use headers::{Authorization, authorization::Basic};
 
 use crate::settings::Auth;
 

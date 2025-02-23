@@ -16,17 +16,17 @@ pub mod users;
 
 use self::users::UserError;
 use crate::{
+    AppState,
     db::{
+        DbConnPool,
         models::{NewReport, NewVersion},
         repositories::{self, AppRepository, ReportRepository, UserSaveError, VersionRepository},
-        DbConnPool,
     },
     dirs::DIRS,
     extractors::User,
     report::Report,
     retrace,
     templates::{self, ErrorPage},
-    AppState,
 };
 
 #[derive(derive_more::From)]

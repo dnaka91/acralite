@@ -16,7 +16,7 @@ pub struct DbConnPool(Arc<Pool<SqliteConnectionManager>>);
 
 impl DbConnPool {
     pub fn get(&self) -> Result<DbConn, r2d2::Error> {
-        self.0.get().map(DbConn).map_err(Into::into)
+        self.0.get().map(DbConn)
     }
 
     #[allow(clippy::trait_duplication_in_bounds)]
