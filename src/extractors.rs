@@ -23,7 +23,6 @@ impl User {
     }
 }
 
-#[axum::async_trait]
 impl<S> FromRequestParts<S> for User
 where
     Arc<Auth>: FromRef<S>,

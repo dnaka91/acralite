@@ -5,10 +5,11 @@ allow = [
     "BSD-2-Clause",
     "BSD-3-Clause",
     "MIT",
+    "Unicode-3.0",
+    "Zlib",
 ]
 exceptions = [
     { allow = ["MPL-2.0"], name = "option-ext" },
-    { allow = ["Unicode-DFS-2016"], name = "unicode-ident" },
 ]
 
 [licenses.private]
@@ -16,10 +17,13 @@ ignore = true
 
 [bans]
 skip = [
-    { name = "bitflags", version = "1" },
-    { name = "syn", version = "1" },
-    { name = "sync_wrapper", version = "0.1" },
+    "getrandom@0.2",
+    "thiserror@1",
+    "thiserror-impl@1",
+    "wasi@0.11",
+    "zerocopy@0.7",
 ]
 skip-tree = [
-    { name = "windows-sys", version = "0.48", depth = 3 },
+    { crate = "windows-sys@0.52", depth = 3 },
+    { crate = "windows-sys@0.48", depth = 3 },
 ]
